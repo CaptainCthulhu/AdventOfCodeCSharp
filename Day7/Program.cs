@@ -245,6 +245,7 @@ namespace Day7
         static void QuestionTwo()
         {
             int[] opCodes = (int[])test.Clone();
+            //need to keep the index too....
             int[] amplifierA = (int[])opCodes.Clone();
             int[] amplifierB = (int[])opCodes.Clone();
             int[] amplifierC = (int[])opCodes.Clone();
