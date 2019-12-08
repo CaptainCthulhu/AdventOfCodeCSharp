@@ -1,24 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Day7
 {
-    class Machine
+    class MachineAsync
     {
         int[] OpCodes;
         public int Index = 0;
         public int Input = 0;
         public int Output = 0;
         public int Code = 0;
+        public MachineAsync outputsTo;
+        public Queue<int> inputs;
+        string MachineName;
 
-        public Machine(int[] opCodes, int phaseSetting)
+        public MachineAsync(int[] opCodes, Queue<int> inputs, string machineName)
         {
             this.OpCodes = (int[])opCodes.Clone();
-            this.Input = phaseSetting;
+            this.inputs = inputs;
+            MachineName = machineName;
         }
 
-        public void Run(int currentInput)
+        public void Run()
         {
             while (true)
             {
@@ -42,15 +47,32 @@ namespace Day7
                 }
                 else if (instruction.Operation == 3)
                 {
-                    OpCodes[instruction.FirstParameter == 0 ? OpCodes[Index + 1] : Index + 1] = this.Input;
-                    this.Input = currentInput;
+                    var currentInput = 0;
+                    while (inputs.Count == 0)
+                    {
+                        Console.WriteLine($"{MachineName} Waiting...");
+                        Thread.Sleep(1);
+                    }
+                   
+                    lock (inputs)
+                    {
+                        Console.WriteLine($"{MachineName} Consuming...");
+                        currentInput = inputs.Dequeue();
+                    }
+                    
+
+                    OpCodes[instruction.FirstParameter == 0 ? OpCodes[Index + 1] : Index + 1] = currentInput;
                     Index += 2;
                 }
                 else if (instruction.Operation == 4)
                 {
                     Output = instruction.FirstParameter == 0 ? OpCodes[OpCodes[Index + 1]] : OpCodes[Index + 1];
-                    Index += 2;               
-                    return;
+                    lock (outputsTo.inputs)
+                    {
+                        Console.WriteLine($"{MachineName} Writing...");
+                        outputsTo.inputs.Enqueue(Output);
+                    }                    
+                    
                 }
                 else if (instruction.Operation == 5)
                 {
