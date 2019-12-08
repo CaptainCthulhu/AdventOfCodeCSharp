@@ -50,7 +50,7 @@ namespace Day7
                     var currentInput = 0;
                     while (inputs.Count == 0)
                     {
-                        Thread.Sleep(1);
+                        Thread.Sleep(0);
                     }
                    
                     lock (inputs)
