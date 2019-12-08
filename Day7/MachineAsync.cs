@@ -50,13 +50,11 @@ namespace Day7
                     var currentInput = 0;
                     while (inputs.Count == 0)
                     {
-                        Console.WriteLine($"{MachineName} Waiting...");
                         Thread.Sleep(1);
                     }
                    
                     lock (inputs)
                     {
-                        Console.WriteLine($"{MachineName} Consuming...");
                         currentInput = inputs.Dequeue();
                     }
                     
@@ -69,9 +67,9 @@ namespace Day7
                     Output = instruction.FirstParameter == 0 ? OpCodes[OpCodes[Index + 1]] : OpCodes[Index + 1];
                     lock (outputsTo.inputs)
                     {
-                        Console.WriteLine($"{MachineName} Writing...");
                         outputsTo.inputs.Enqueue(Output);
-                    }                    
+                    }
+                    Index += 2;
                     
                 }
                 else if (instruction.Operation == 5)
