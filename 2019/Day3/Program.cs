@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace Day3
 {
@@ -63,7 +64,7 @@ namespace Day3
             QuestionTwo();
         }
 
-        static void Plot(string[] wire)
+        static void Plot(string[] wire, List<Point> wirePoints)
         {
             Point pointer = new Point(0, 0);
             foreach (var i in wire)
@@ -72,34 +73,86 @@ namespace Day3
                 for (int x = 0; x < s.intensity; x++)
                 {
                     pointer.Offset(Movement[s.direction]);
-                    if (Grid.ContainsKey(pointer))
-                    {
-                        Grid[pointer]++;
-                    }
-                    else
-                    {
-                        Grid[pointer] = 1;
-                    }
-
+                    wirePoints.Add(pointer);
                 }
             }
         }
 
-        static void FindMinimum()
+        static int FindMinimum(List<Point> wirePoints)
         {
-            
+            var min = int.MaxValue;
+
+            foreach(var i in wirePoints)
+            {
+                var result = Math.Abs(i.X) + Math.Abs(i.Y);
+                if (result < min)
+                    min = result;
+            }
+
+            return min;
         }
 
         static void QuestionOne()
         {
-            Plot(wire1);
-            Plot(wire2);
-            Console.WriteLine("Question One: ");
+            List<Point> wirePoints1 = new List<Point>();
+            List<Point> wirePoints2 = new List<Point>();
+            Plot(wire1, wirePoints1);
+            Plot(wire2, wirePoints2);
+
+            var result = wirePoints1.Intersect(wirePoints2).ToList<Point>();
+
+            Console.WriteLine("Question One: " + FindMinimum(result));
+        }
+
+        static void PlotWithCount(string[] wire, Dictionary<Point,int> wirePoints)
+        {
+            Point pointer = new Point(0, 0);
+            var wireCount = 0;
+            foreach (var i in wire)
+            {
+                var s = Split(i);
+                for (int x = 0; x < s.intensity; x++)
+                {
+                    wireCount++;
+                    pointer.Offset(Movement[s.direction]);
+                    if (!wirePoints.ContainsKey(pointer))
+                    {
+                        wirePoints[pointer] = wireCount;
+                    }
+                    
+                }
+            }
+        }
+
+        static int FindMinimumSteps(Dictionary<Point, int> wirePoints1, Dictionary<Point, int> wirePoints2)
+        {
+            var min = int.MaxValue;
+
+            foreach (KeyValuePair<Point, int> point in wirePoints1)
+            {
+                if (wirePoints2.ContainsKey(point.Key))
+                {
+                    var sum = point.Value + wirePoints2[point.Key];
+                    if (sum  < min)
+                    {
+                        min = sum;
+                    }
+                }
+            }
+
+            return min;
         }
 
         static void QuestionTwo()
         {
-            Console.WriteLine("Question Two: ");
+            Dictionary<Point, int> wirePoints1 = new Dictionary<Point, int>();
+            Dictionary<Point, int> wirePoints2 = new Dictionary<Point, int>();
+            PlotWithCount(wire1, wirePoints1);
+            PlotWithCount(wire2, wirePoints2);
+
+            var min = FindMinimumSteps(wirePoints1, wirePoints2);
+
+            Console.WriteLine("Question Two: " + min);
         }
     }
 }
