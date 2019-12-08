@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Day7
 {
     class Program
     {
-        static int[] test = new int[] { 3, 26, 1001, 26, -4, 26, 3, 27, 1002, 27, 2, 27, 1, 27, 26, 27, 4, 27, 1001, 28, -1, 28, 1005, 28, 6, 99, 0, 0, 5 };
+        static int[] test = new int[] { 3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26, 27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5 };
         static int[] opCodeTemplate = new int[] { 3, 8, 1001, 8, 10, 8, 105, 1, 0, 0, 21, 46, 63, 76, 97, 118, 199, 280, 361, 442, 99999, 3, 9, 102, 4, 9, 9, 101, 2, 9, 9, 1002, 9, 5, 9, 101, 4, 9, 9, 102, 2, 9, 9, 4, 9, 99, 3, 9, 101, 5, 9, 9, 102, 3, 9, 9, 101, 3, 9, 9, 4, 9, 99, 3, 9, 1001, 9, 2, 9, 102, 3, 9, 9, 4, 9, 99, 3, 9, 1002, 9, 5, 9, 101, 4, 9, 9, 1002, 9, 3, 9, 101, 2, 9, 9, 4, 9, 99, 3, 9, 1002, 9, 5, 9, 101, 3, 9, 9, 1002, 9, 5, 9, 1001, 9, 5, 9, 4, 9, 99, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 1001, 9, 1, 9, 4, 9, 3, 9, 101, 1, 9, 9, 4, 9, 3, 9, 1001, 9, 1, 9, 4, 9, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 1001, 9, 2, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 99, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 101, 2, 9, 9, 4, 9, 3, 9, 1001, 9, 1, 9, 4, 9, 3, 9, 101, 2, 9, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 101, 2, 9, 9, 4, 9, 3, 9, 1001, 9, 1, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 99, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 1001, 9, 2, 9, 4, 9, 3, 9, 101, 1, 9, 9, 4, 9, 3, 9, 101, 2, 9, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 1001, 9, 2, 9, 4, 9, 3, 9, 101, 1, 9, 9, 4, 9, 99, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 1001, 9, 2, 9, 4, 9, 3, 9, 101, 1, 9, 9, 4, 9, 3, 9, 1001, 9, 1, 9, 4, 9, 3, 9, 1001, 9, 2, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 101, 1, 9, 9, 4, 9, 3, 9, 1001, 9, 1, 9, 4, 9, 3, 9, 101, 2, 9, 9, 4, 9, 99, 3, 9, 101, 1, 9, 9, 4, 9, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 1002, 9, 2, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 101, 1, 9, 9, 4, 9, 3, 9, 101, 2, 9, 9, 4, 9, 3, 9, 1001, 9, 2, 9, 4, 9, 3, 9, 102, 2, 9, 9, 4, 9, 3, 9, 101, 2, 9, 9, 4, 9, 99 };
 
         static void Main(string[] args)
@@ -15,191 +17,6 @@ namespace Day7
             QuestionTwo();
         }
 
-        struct Instruction
-        {
-            public int Operation;
-            public int FirstParameter;
-            public int SecondParameter;
-            public int ThirdParameter;
-        }
-
-        static Instruction DetermineOperation(int value)
-        {
-            List<int> numerals = value.ToString("D5").ToCharArray().ToList().Select(s => int.Parse(s.ToString())).Reverse().ToList();
-
-            return new Instruction
-            {
-                Operation = numerals[0] + numerals[1] * 10,
-                FirstParameter = numerals[2],
-                SecondParameter = numerals[3],
-                ThirdParameter = numerals[4]
-            };
-        }
-
-        static int MachineOne(int[] opcodes, int firstNumber, int secondNumber)
-        {
-            var index = 0;
-            var answer = 0;
-            var input = firstNumber;
-
-            while (true)
-            {
-                index = index % opcodes.Length;
-                Instruction instruction = DetermineOperation(opcodes[index]);
-
-                if (instruction.Operation == 1)
-                {
-                    opcodes[instruction.ThirdParameter == 0 ? opcodes[index + 3] : index + 3] =
-                        (instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1]) +
-                        (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2]);
-                    index += 4;
-                }
-                else if (instruction.Operation == 2)
-                {
-
-                    opcodes[instruction.ThirdParameter == 0 ? opcodes[index + 3] : index + 3] =
-                    (instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1]) *
-                        (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2]);
-                    index += 4;
-                }
-                else if (instruction.Operation == 3)
-                {
-                    opcodes[instruction.FirstParameter == 0 ? opcodes[index + 1] : index + 1] = input;
-                    input = secondNumber;
-                    index += 2;
-                }
-                else if (instruction.Operation == 4)
-                {
-                    var val = instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1];
-                    if (val != 0)
-                        answer = val;
-                    index += 2;
-                }
-                else if (instruction.Operation == 5)
-                {
-                    var firstParamterPointer = instruction.FirstParameter == 0 ? opcodes[index + 1] : (index + 1);
-                    if (opcodes[firstParamterPointer] != 0)
-                        index = (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2]);
-                    else
-                        index += 3;
-                }
-                else if (instruction.Operation == 6)
-                {
-                    var firstParameterPointer = instruction.FirstParameter == 0 ? opcodes[index + 1] : (index + 1);
-                    if (opcodes[firstParameterPointer] == 0)
-                        index = (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2]);
-                    else
-                        index += 3;
-                }
-                else if (instruction.Operation == 7)
-                {
-                    opcodes[instruction.ThirdParameter == 0 ? opcodes[index + 3] : index + 3] =
-                                       ((instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1]) <
-                                           (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2])) ? 1 : 0;
-                    index += 4;
-                }
-                else if (instruction.Operation == 8)
-                {
-                    opcodes[instruction.ThirdParameter == 0 ? opcodes[index + 3] : index + 3] =
-                                       ((instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1]) ==
-                                           (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2])) ? 1 : 0;
-                    index += 4;
-                }
-                else if (instruction.Operation == 99)
-                {
-                    return answer;
-                }
-                else
-                {
-                    Console.WriteLine($"Bad Opcode: {instruction.Operation}. Point Location: {index}.");
-                    break;
-                }
-            }
-            return 0;
-        }
-
-        static int MachineTwo(int[] opcodes, int firstInput, int secondInput, out int returnanswer)
-        {
-            var index = 0;
-            var currentInput = firstInput;
-            returnanswer = 0;
-
-            while (true)
-            {
-                index = index % opcodes.Length;
-                Instruction instruction = DetermineOperation(opcodes[index]);
-
-                if (instruction.Operation == 1)
-                {
-                    opcodes[instruction.ThirdParameter == 0 ? opcodes[index + 3] : index + 3] =
-                        (instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1]) +
-                        (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2]);
-                    index += 4;
-                }
-                else if (instruction.Operation == 2)
-                {
-
-                    opcodes[instruction.ThirdParameter == 0 ? opcodes[index + 3] : index + 3] =
-                    (instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1]) *
-                        (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2]);
-                    index += 4;
-                }
-                else if (instruction.Operation == 3)
-                {
-                    opcodes[instruction.FirstParameter == 0 ? opcodes[index + 1] : index + 1] = currentInput;
-                    currentInput = secondInput;
-                    index += 2;
-                }
-                else if (instruction.Operation == 4)
-                {
-                    var val = instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1];
-                    returnanswer = val;
-                    return 4;
-                    index += 2;
-                }
-                else if (instruction.Operation == 5)
-                {
-                    var firstParamterPointer = instruction.FirstParameter == 0 ? opcodes[index + 1] : (index + 1);
-                    if (opcodes[firstParamterPointer] != 0)
-                        index = (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2]);
-                    else
-                        index += 3;
-                }
-                else if (instruction.Operation == 6)
-                {
-                    var firstParameterPointer = instruction.FirstParameter == 0 ? opcodes[index + 1] : (index + 1);
-                    if (opcodes[firstParameterPointer] == 0)
-                        index = (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2]);
-                    else
-                        index += 3;
-                }
-                else if (instruction.Operation == 7)
-                {
-                    opcodes[instruction.ThirdParameter == 0 ? opcodes[index + 3] : index + 3] =
-                                       ((instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1]) <
-                                           (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2])) ? 1 : 0;
-                    index += 4;
-                }
-                else if (instruction.Operation == 8)
-                {
-                    opcodes[instruction.ThirdParameter == 0 ? opcodes[index + 3] : index + 3] =
-                                       ((instruction.FirstParameter == 0 ? opcodes[opcodes[index + 1]] : opcodes[index + 1]) ==
-                                           (instruction.SecondParameter == 0 ? opcodes[opcodes[index + 2]] : opcodes[index + 2])) ? 1 : 0;
-                    index += 4;
-                }
-                else if (instruction.Operation == 99)
-                {
-                    return 99;
-                }
-                else
-                {
-                    Console.WriteLine($"Bad Opcode: {instruction.Operation}. Point Location: {index}.");
-                    break;
-                }
-            }
-
-            return 0;
-        }
 
         static void QuestionOne()
         {
@@ -222,16 +39,22 @@ namespace Day7
                                     && c != d && c != e
                                     && d != e)
                                 {
-                                    var answer = MachineOne((int[])opCodes.Clone(), a, 0);
-                                    answer = MachineOne((int[])opCodes.Clone(), b, answer);
-                                    answer = MachineOne((int[])opCodes.Clone(), c, answer);
-                                    answer = MachineOne((int[])opCodes.Clone(), d, answer);
-                                    answer = MachineOne((int[])opCodes.Clone(), e, answer);
+                                    Machine machineA = new Machine(opCodes, a);
+                                    Machine machineB = new Machine(opCodes, b);
+                                    Machine machineC = new Machine(opCodes, c);
+                                    Machine machineD = new Machine(opCodes, d);
+                                    Machine machineE = new Machine(opCodes, e);
 
-                                    if (answer > signal)
+                                    machineA.Run(machineE.Output);
+                                    machineB.Run(machineA.Output);
+                                    machineC.Run(machineB.Output);
+                                    machineD.Run(machineC.Output);
+                                    machineE.Run(machineD.Output);
+
+                                    if (machineE.Output > signal)
                                     {
                                         phasesetting = e + d * 10 + c * 100 + b * 1000 + a * 10000;
-                                        signal = answer;
+                                        signal = machineE.Output;
                                     }
                                 }
                             }
@@ -242,18 +65,14 @@ namespace Day7
             Console.WriteLine("Question One: " + signal);
         }
 
+
         static void QuestionTwo()
         {
-            int[] opCodes = (int[])test.Clone();
-            int[] amplifierA = (int[])opCodes.Clone();
-            int[] amplifierB = (int[])opCodes.Clone();
-            int[] amplifierC = (int[])opCodes.Clone();
-            int[] amplifierD = (int[])opCodes.Clone();
-            int[] amplifierE = (int[])opCodes.Clone();
-
+            int[] opCodes = (int[])opCodeTemplate.Clone();
 
             int signal = 0;
             int phasesetting = 0;
+
             for (int a = 5; a < 10; a++)
             {
                 for (int b = 5; b < 10; b++)
@@ -269,21 +88,50 @@ namespace Day7
                                     && c != d && c != e
                                     && d != e)
                                 {
-                                    var answer = 0;
-                                    var code = 0;
-                                    do
-                                    {
-                                        _ = MachineTwo(amplifierA, a, answer, out answer);
-                                        _ = MachineTwo(amplifierB, b, answer, out answer);
-                                        _ = MachineTwo(amplifierC, c, answer, out answer);
-                                        _ = MachineTwo(amplifierD, d, answer, out answer);
-                                        code = MachineTwo(amplifierE, e, answer, out answer);
-                                    } while (code != 99);
+                                    var tempQueue = new Queue<int>();
+                                    tempQueue.Enqueue(a);
+                                    tempQueue.Enqueue(0);
+                                    MachineAsync machineA = new MachineAsync(opCodes, tempQueue, "A");
 
-                                    if (answer > signal)
+                                    tempQueue = new Queue<int>();
+                                    tempQueue.Enqueue(b);
+                                    MachineAsync machineB = new MachineAsync(opCodes, tempQueue, "B");
+                                    machineA.outputsTo = machineB;
+
+                                    tempQueue = new Queue<int>();
+                                    tempQueue.Enqueue(c);
+                                    MachineAsync machineC = new MachineAsync(opCodes, tempQueue, "C");
+                                    machineB.outputsTo = machineC;
+
+                                    tempQueue = new Queue<int>();
+                                    tempQueue.Enqueue(d);
+                                    MachineAsync machineD = new MachineAsync(opCodes, tempQueue, "D");
+                                    machineC.outputsTo = machineD;
+
+                                    tempQueue = new Queue<int>();
+                                    tempQueue.Enqueue(e);
+                                    MachineAsync machineE = new MachineAsync(opCodes, tempQueue, "E");
+                                    machineD.outputsTo = machineE;
+                                    machineE.outputsTo = machineA;
+
+                                    List<Task> TaskList= new List<Task>{
+                                    new Task(machineA.Run),
+                                    new Task(machineB.Run),
+                                    new Task(machineC.Run),
+                                    new Task(machineD.Run),
+                                     new Task(machineE.Run)
+                                    };
+
+                                    TaskList.ForEach(x => x.Start());
+
+                                    Task.WaitAll(TaskList.ToArray());
+
+                                    phasesetting = e + d * 10 + c * 100 + b * 1000 + a * 10000;
+
+                                    if (machineE.Output > signal)
                                     {
                                         phasesetting = e + d * 10 + c * 100 + b * 1000 + a * 10000;
-                                        signal = answer;
+                                        signal = machineE.Output;
                                     }
                                 }
                             }
@@ -291,8 +139,7 @@ namespace Day7
                     }
                 }
             }
-
-            Console.WriteLine("Question Two: " + signal);
+            Console.WriteLine("Question Two: " + signal + " Phase Setting: " + phasesetting);
         }
     }
 }
