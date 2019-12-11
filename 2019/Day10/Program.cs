@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
+using System.Windows;
 
 namespace Day10
 {
@@ -31,24 +33,24 @@ namespace Day10
 
             return stars;
         }
-  
+
 
         private static void Vectors(List<Point> stars)
         {
 
             int maxCount = 0;
 
-            foreach(var star in stars)
+            foreach (var star in stars)
             {
                 var vectorList = new List<Point>();
 
-                foreach(var star2 in stars)
+                foreach (var star2 in stars)
                 {
                     //Are they the same?
-                    if (star.X == star2.X && star.Y == star2.Y)                    
-                        break;
+                    if (star.X == star2.X && star.Y == star2.Y)
+                        continue;
 
-                    var vector = new Point(star2.X - star.X, star2.Y - star.Y);                    
+                    var vector = new Point(star2.X - star.X, star2.Y - star.Y);
                     if (vector.X == 0 || vector.Y == 0)
                     {
                         vector.X = vector.X == 0 ? 0 : vector.X / Math.Abs(vector.X);
@@ -59,12 +61,11 @@ namespace Day10
                         var gcd = GCD(vector.X, vector.Y);
                         vector = new Point(vector.X / gcd, vector.Y / gcd);
                     }
-                    if (!(vectorList.Any(v => v.X == vector.X && v.Y == vector.Y)))                    
-                    {
-                        Console.WriteLine($"Star at {star.X},{star.Y} sees star at {star2.X},{star2.Y}.");
+                    if (!(vectorList.Any(v => v.X == vector.X && v.Y == vector.Y)))
+                    {                       
                         vectorList.Add(vector);
                     }
-                    
+
                 }
 
                 if (vectorList.Count > maxCount)
@@ -96,9 +97,9 @@ namespace Day10
         static void Q1()
         {            
             Vectors(split(Input.example));            
-            //Vectors(split(Input.example2));            
-            //Vectors(split(Input.example3));            
-            //Vectors(split(Input.real));
+            Vectors(split(Input.example2));            
+            Vectors(split(Input.example3));            
+            Vectors(split(Input.real));
 
             Console.ReadKey();
         }
