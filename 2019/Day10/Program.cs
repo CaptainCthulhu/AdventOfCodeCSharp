@@ -37,7 +37,7 @@ namespace Day10
 
         private static void Vectors(List<Point> stars)
         {
-
+            Point bestPoint = new Point();
             int maxCount = 0;
 
             foreach (var star in stars)
@@ -69,10 +69,13 @@ namespace Day10
                 }
 
                 if (vectorList.Count > maxCount)
+                {
+                    bestPoint = star;
                     maxCount = vectorList.Count;
+                }
             }
 
-            Console.WriteLine($"Q1: {maxCount}");
+            Console.WriteLine($"Q1: {maxCount}. Best Point: {bestPoint}");
         }
 
 
