@@ -9,7 +9,7 @@ namespace Day12
         public Vector3 location;
         public Vector3 velocity;
 
-        public Planet(int x, int y, int z)
+        public Planet(float x, float y, float z)
         {
             velocity = new Vector3();
             location = new Vector3(x, y, z);
@@ -36,6 +36,16 @@ namespace Day12
             return Convert.ToInt32(
                 (Math.Abs(location.X) + Math.Abs(location.Y) + Math.Abs(location.Z)) *
                 (Math.Abs(velocity.X) + Math.Abs(velocity.Y) + Math.Abs(velocity.Z)));
+        }
+
+        public static bool Equivalent(Planet one, Planet two)
+        {
+            return one.location.X == two.location.X
+                && one.location.Y == two.location.Y
+                && one.location.Z == two.location.Z
+                && one.velocity.X == two.velocity.X
+                && one.velocity.Y == two.velocity.Y
+                && one.velocity.Z == two.velocity.Z;
         }
     }
 }

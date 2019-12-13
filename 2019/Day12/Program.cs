@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Day12
 {
     class Program
-    {      
+    {
 
         static void Main(string[] args)
         {
@@ -15,7 +15,7 @@ namespace Day12
 
         static private void Q1()
         {
-            var workingPlanets = Inputs.planets;
+            var workingPlanets = CopyPlanets(Inputs.planets);
 
             int iteration = 0;
             int goal = 1000;
@@ -41,11 +41,11 @@ namespace Day12
 
         static private void Q2()
         {
-            var workingPlanets = Inputs.planets;
+            var workingPlanets = CopyPlanets(Inputs.planets);
             var iteration = 0;
-            List<Planet[]> previousState = new List<Planet[]>();
+            var originalState = CopyPlanets(Inputs.planets);
 
-            while (!Found(workingPlanets, previousState))
+            do
             {
                 //Update Vector
                 foreach (var x in workingPlanets)
@@ -60,14 +60,55 @@ namespace Day12
                 }
 
                 iteration++;
-            }
+                if (Stopped(workingPlanets))
+                    Console.WriteLine($"Stopped {iteration}. Solution? {iteration * 2}");
+
+            } while (!Found(workingPlanets, originalState));
 
             Console.WriteLine($"Q2: {iteration}");
         }
 
-        static bool Found(Planet[] planets, List<Planet[]> previousStates)
+        static bool Stopped(Planet[] planets)
         {
-            return false;
+
+            for (int i = 0; i < planets.Count(); i++)
+            {
+                bool answer = planets[i].velocity.X == 0 && planets[i].velocity.Y == 0 && planets[i].velocity.Z == 0;
+                if (!answer)
+                    return false;
+            }
+
+            return true;
+        }
+
+        static bool Found(Planet[] planets, Planet[] originalState)
+        {
+
+            for (int i = 0; i < planets.Count(); i++)
+            {
+                var answer = Planet.Equivalent(planets[i], originalState[i]);
+                if (!answer)
+                    return false;
+            }
+
+            return true;
+        }
+
+        static Planet[] CopyPlanets(Planet[] planets)
+        {
+            var returnPlanets = new Planet[planets.Length];
+
+            for (int i = 0; i < planets.Length; i++)
+            {
+                returnPlanets[i] = Copy(planets[i]);
+            }
+
+            return returnPlanets;
+        }
+
+        static Planet Copy(Planet planet)
+        {
+            return new Planet(planet.location.X, planet.location.Y, planet.location.Z);
         }
     }
 }
