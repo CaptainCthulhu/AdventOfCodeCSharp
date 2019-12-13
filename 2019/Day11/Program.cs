@@ -23,7 +23,7 @@ namespace Day11
         {
             Interop.OpCodeMachine(Clone());
             var locations = paintedSquares.Select(x => x.location);
-            Console.WriteLine($"Q1: {locations.Distinct().Count()}");
+            Console.WriteLine($"Question 1: {locations.Distinct().Count()}");
         }
 
         static List<long> Clone()
@@ -47,7 +47,7 @@ namespace Day11
                 {
                     if (locations.Any(i => i.X == x && i.Y == y))
                     {
-                        result += "X";
+                        result += "█";
                     }
                     else
                     {
@@ -57,7 +57,7 @@ namespace Day11
                 result += "\n";
             }
 
-            Console.WriteLine($"Q1: \n{result}");
+            Console.WriteLine($"Question 2: \n{result}");
         }
 
 
