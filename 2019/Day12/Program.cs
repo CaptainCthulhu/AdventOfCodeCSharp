@@ -83,12 +83,14 @@ namespace Day12
 
         static bool Found(Planet[] planets, Planet[] originalState)
         {
-
-            for (int i = 0; i < planets.Count(); i++)
+            if (Stopped(planets))
             {
-                var answer = Planet.Equivalent(planets[i], originalState[i]);
-                if (!answer)
-                    return false;
+                for (int i = 0; i < planets.Count(); i++)
+                {
+                    var answer = Planet.Equivalent(planets[i], originalState[i]);
+                    if (!answer)
+                        return false;
+                }
             }
 
             return true;

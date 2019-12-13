@@ -42,10 +42,7 @@ namespace Day12
         {
             return one.location.X == two.location.X
                 && one.location.Y == two.location.Y
-                && one.location.Z == two.location.Z
-                && one.velocity.X == two.velocity.X
-                && one.velocity.Y == two.velocity.Y
-                && one.velocity.Z == two.velocity.Z;
+                && one.location.Z == two.location.Z;
         }
     }
 }
