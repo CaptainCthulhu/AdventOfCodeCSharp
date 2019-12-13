@@ -42,7 +42,7 @@ namespace Day12
         static private void Q2()
         {
             var workingPlanets = CopyPlanets(Inputs.planets);
-            var iteration = 0;
+            long iteration = 0;
             var originalState = CopyPlanets(Inputs.planets);
 
             do
