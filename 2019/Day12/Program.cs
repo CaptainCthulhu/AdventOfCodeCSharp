@@ -92,6 +92,8 @@ namespace Day12
                         return false;
                 }
             }
+            else
+                return false;
 
             return true;
         }
@@ -114,3 +116,4 @@ namespace Day12
         }
     }
 }
+
