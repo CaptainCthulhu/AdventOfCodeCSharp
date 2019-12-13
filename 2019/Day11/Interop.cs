@@ -49,15 +49,15 @@ namespace Day11
             }
         }
 
-        public delegate int AskForInstructions(Queue<long> outputs);            
+       
 
-        public static void OpCodeMachine(List<long> opcodes, AskForInstructions askForInstructions)
+        public static void OpCodeMachine(List<long> opcodes)
         {
             Queue<long> inputs = new Queue<long>();
             Queue<long> outputs = new Queue<long>();
 
-            var index = 0;
-            var relativeBase = 0;
+            int index = 0;
+            int relativeBase = 0;
 
             while (true)
             {
@@ -82,15 +82,14 @@ namespace Day11
                 else if (instruction.Operation == 3)
                 {
                     if (inputs.Count == 0)
-                        inputs.Enqueue(askForInstructions(outputs));                                 
+                        inputs.Enqueue(Program.Instructions(outputs));                                 
                     opcodes[Index(index, instruction.FirstParameter, 1, opcodes, relativeBase)] = inputs.Dequeue();
                         
                     index += 2;
                 }
                 else if (instruction.Operation == 4)
                 {
-                    var val = opcodes[Index(index, instruction.FirstParameter, 1, opcodes, relativeBase)];
-
+                    long val = opcodes[Index(index, instruction.FirstParameter, 1, opcodes, relativeBase)];
                     outputs.Enqueue(val);
 
                     index += 2;
