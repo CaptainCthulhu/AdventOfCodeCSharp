@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+using System.Collections.Generic;
 
 namespace Day12
 {
     class Program
-    {
-
-        static Planet[] planets = new Planet[] {                
-            new Planet(3,6,6),
-            new Planet(10,7,-9),
-            new Planet(-3,7,9),
-            new Planet(-8,0,4)
-        };   
+    {      
 
         static void Main(string[] args)
         {
@@ -23,24 +15,59 @@ namespace Day12
 
         static private void Q1()
         {
+            var workingPlanets = Inputs.planets;
+
             int iteration = 0;
             int goal = 1000;
             while (iteration < goal)
             {
-
-                foreach (var x in planets)
+                //Update Vector
+                foreach (var x in workingPlanets)
                 {
-                    //hard stuff in here
+                    x.Update(workingPlanets.Where(y => y != x).ToList());
+                }
+
+                //Move
+                foreach (var x in workingPlanets)
+                {
+                    x.Move();
+                }
+
+                iteration++;
+            }
+            //4108 wrong
+            Console.WriteLine($"Q1: {workingPlanets.Sum(x => x.Energy())}");
+        }
+
+        static private void Q2()
+        {
+            var workingPlanets = Inputs.planets;
+            var iteration = 0;
+            List<Planet[]> previousState = new List<Planet[]>();
+
+            while (!Found(workingPlanets, previousState))
+            {
+                //Update Vector
+                foreach (var x in workingPlanets)
+                {
+                    x.Update(workingPlanets.Where(y => y != x).ToList());
+                }
+
+                //Move
+                foreach (var x in workingPlanets)
+                {
+                    x.Move();
                 }
 
                 iteration++;
             }
 
+            Console.WriteLine($"Q2: {iteration}");
         }
 
-        static private void Q2()
+        static bool Found(Planet[] planets, List<Planet[]> previousStates)
         {
-
+            return false;
         }
     }
 }
