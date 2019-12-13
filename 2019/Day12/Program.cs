@@ -11,6 +11,7 @@ namespace Day12
         {
             Q1();
             Q2();
+            Console.ReadKey();
         }
 
         static private void Q1()
@@ -43,7 +44,11 @@ namespace Day12
         {
             var workingPlanets = CopyPlanets(Inputs.planets);
             long iteration = 0;
-            var originalState = CopyPlanets(Inputs.planets);
+            var originalState = CopyPlanets(workingPlanets);
+
+            long xCycles = 0;
+            long yCycles = 0;
+            long zCycles = 0;
 
             do
             {
@@ -60,12 +65,51 @@ namespace Day12
                 }
 
                 iteration++;
-                if (Stopped(workingPlanets))
-                    Console.WriteLine($"Stopped {iteration}. Solution? {iteration * 2}");
 
-            } while (!Found(workingPlanets, originalState));
+                //check x
+                bool good = true;
+                if (xCycles == 0)
+                {
+                    for (int i = 0; i < workingPlanets.Count(); i++)
+                    {
+                        good = Planet.checkAxis(workingPlanets[i].location.X, originalState[i].location.X, workingPlanets[i].velocity.X,  originalState[i].velocity.X);
+                        if (good == false)
+                            break;
+                    }
+                    if (good)
+                        xCycles = iteration;
+                }
 
-            Console.WriteLine($"Q2: {iteration}");
+
+                if (yCycles == 0)
+                {
+                    good = true;
+                    for (int i = 0; i < workingPlanets.Count(); i++)
+                    {
+                        good = Planet.checkAxis(workingPlanets[i].location.Y, originalState[i].location.Y, workingPlanets[i].velocity.Y,  originalState[i].velocity.Y);
+                        if (good == false)
+                            break;
+                    }
+                    if (good)
+                        yCycles = iteration;
+                }
+
+                if (zCycles == 0)
+                {
+                    good = true;
+                    for (int i = 0; i < workingPlanets.Count(); i++)
+                    {
+                        good = Planet.checkAxis(workingPlanets[i].location.Z, originalState[i].location.Z, workingPlanets[i].velocity.Z,  originalState[i].velocity.Z);
+                        if (good == false)
+                            break;
+                    }
+                    if (good)
+                        zCycles = iteration;
+                }
+
+            } while (xCycles == 0 || yCycles == 0 || zCycles == 0);
+	    //Cheated a bit, used Wolfram Alpha to find the LCM
+            Console.WriteLine($"Q2: {xCycles} {yCycles} {zCycles}");
         }
 
         static bool Stopped(Planet[] planets)

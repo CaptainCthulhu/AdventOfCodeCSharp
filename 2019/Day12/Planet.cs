@@ -1,23 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
-
 namespace Day12
 {
     class Planet
     {
-        public Vector3 location;
-        public Vector3 velocity;
-
-        public Planet(float x, float y, float z)
+        public struct Vector
         {
-            velocity = new Vector3();
-            location = new Vector3(x, y, z);
+            public int Y;
+            public int X;
+            public int Z;
+
+            public Vector(int x, int y, int z)
+            {
+                Y = y;
+                X = x;
+                Z = z;
+            }
+        }
+
+        public Vector velocity;
+        public Vector location;
+
+        public Planet(int x, int y, int z)
+        {
+            velocity = new Vector();
+            location = new Vector(x, y, z);
         }
 
         public void Update(List<Planet> planets)
         {
-            foreach(Planet p in planets)
+            foreach (Planet p in planets)
             {
                 velocity.X += p.location.X > location.X ? 1 : p.location.X < location.X ? -1 : 0;
                 velocity.Y += p.location.Y > location.Y ? 1 : p.location.Y < location.Y ? -1 : 0;
@@ -33,9 +45,9 @@ namespace Day12
 
         public int Energy()
         {
-            return Convert.ToInt32(
+            return
                 (Math.Abs(location.X) + Math.Abs(location.Y) + Math.Abs(location.Z)) *
-                (Math.Abs(velocity.X) + Math.Abs(velocity.Y) + Math.Abs(velocity.Z)));
+                (Math.Abs(velocity.X) + Math.Abs(velocity.Y) + Math.Abs(velocity.Z));
         }
 
         public static bool Equivalent(Planet one, Planet two)
@@ -43,6 +55,11 @@ namespace Day12
             return one.location.X == two.location.X
                 && one.location.Y == two.location.Y
                 && one.location.Z == two.location.Z;
+        }
+
+        public static bool checkAxis(int positionOne, int positionTwo, int velocityOne, int velocityTwo)
+        {
+            return positionOne == positionTwo && velocityOne == velocityTwo;
         }
     }
 }
