@@ -61,7 +61,7 @@ namespace Day11
             }
             else if (direction == 1)
             {
-                if (previousLocation.facing == "Up")
+                if (previousLocation == null || previousLocation.facing == "Up")
                     return "Right";
                 else if (previousLocation.facing == "Left")
                     return "Up";

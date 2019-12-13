@@ -49,12 +49,18 @@ namespace Day11
             }
         }
 
-       
+
 
         public static void OpCodeMachine(List<long> opcodes)
         {
             Queue<long> inputs = new Queue<long>();
             Queue<long> outputs = new Queue<long>();
+
+            for (int i = 0; i < 10000000; i++)
+            {
+                opcodes.Add(0);
+            }
+
 
             int index = 0;
             int relativeBase = 0;
