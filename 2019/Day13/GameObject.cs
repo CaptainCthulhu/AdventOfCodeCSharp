@@ -19,6 +19,13 @@ namespace Day13
         public GameObjectType Type;
         public Point Location;
         public int Score;
+        public bool IsScore
+        {
+            get
+            {
+                return Location.X == -1 && Location.Y == 0;
+            }
+        }
 
         public GameObject(int x, int y, int type)
         {
@@ -33,12 +40,5 @@ namespace Day13
                 Location = new Point(x, y);
             }
         }
-
-        public bool IsScore()
-        {
-            return Location.X == -1 && Location.Y == 0;
-        }
-
-
     }
 }

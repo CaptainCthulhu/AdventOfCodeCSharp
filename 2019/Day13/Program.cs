@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,6 +43,7 @@ namespace Day13
 
         static Interop q2Interop = new Interop();
         static List<GameObject> Q2Objects = new List<GameObject>();
+        static int Score = 0;
 
         static private void Q2()
         {
@@ -52,7 +54,7 @@ namespace Day13
 
             ParseInputs();
 
-            Console.WriteLine($"Q2: {Q2Objects.Where(x => x.IsScore()).LastOrDefault().Score}");
+            Console.WriteLine($"Q2: {Score}");
 
         }
 
@@ -65,25 +67,72 @@ namespace Day13
             }
         }
 
+        static public void Draw()
+        {
+            Console.Clear();
+            string s = "";
+            int yMax = Q2Objects.Select(x => x.Location.Y).Max();
+            int xMax = Q2Objects.Select(x => x.Location.X).Max();
+            for (int y = 0; y <= yMax; y++)
+            {
+                for (int x = 0; x <= xMax ; x++)
+                {
+                    var gameObject = Q2Objects.FindLast(go => go.Location.Y == y && go.Location.X == x);
+                    if (gameObject != null)
+                    {
+                        switch (gameObject.Type)
+                        {
+                            case GameObject.GameObjectType.ball:
+                                s += "O";
+                                break;
+                            case GameObject.GameObjectType.block:
+                                s += "█";
+                                break;
+                            case GameObject.GameObjectType.empty:
+                                s += " ";
+                                break;
+                            case GameObject.GameObjectType.horizontalPaddle:
+                                s += "▄";
+                                break;
+                            case GameObject.GameObjectType.wall:
+                                s += "█";
+                                break;
+                        }
+                    }
+                    else
+                        s += " ";
+                }
+
+                s += "\n";
+
+            }            
+            Console.Write(s);
+        }
+
         static public int GetInput()
         {
             ParseInputs();
+            Draw();
+            var score = Q2Objects.Where(x => x.IsScore).LastOrDefault();
+            if (score != null)
+                Score = score.Score;
             GameObject paddle = Q2Objects.Where(x => x.Type == GameObject.GameObjectType.horizontalPaddle).LastOrDefault();
-            List<GameObject> balls = Q2Objects.Where(x => x.Type == GameObject.GameObjectType.ball).ToList();
-            GameObject currentBall = balls.Last();
-            GameObject prevBall = null;
+            List<GameObject> balls = Q2Objects.Where(x => x.Type == GameObject.GameObjectType.ball).ToList();            
+            GameObject currentBall = balls.Last();            
             int xDirection = 0;
             int yDirection = 0;
+            GameObject previousBall = null;
 
-
+            Console.WriteLine($"Ball at {currentBall.Location.X},{currentBall.Location.Y} Paddle as {paddle.Location.X}, {paddle.Location.Y}");
+            Thread.Sleep(500);
 
             if (balls.Count() > 1)
-                prevBall = balls[balls.Count - 2];
+                previousBall = balls[balls.Count - 2];
 
-            if (prevBall != null)
+            if (previousBall != null)
             {
-                xDirection = currentBall.Location.X - prevBall.Location.X;
-                yDirection = currentBall.Location.Y - prevBall.Location.Y;
+                xDirection = currentBall.Location.X - previousBall.Location.X;
+                yDirection = currentBall.Location.Y - previousBall.Location.Y;
             }
             else
             {
@@ -91,13 +140,11 @@ namespace Day13
                 yDirection = 0;
             }
 
-            Console.WriteLine($"Ball at {currentBall.Location.X}, Paddle at {paddle.Location.X}, ball going " 
-                + $"{((xDirection > 0) ? "Right" : (xDirection < 0) ? "Left" : "Nowhere")} and "
-                + $"{((yDirection > 0) ? "Down" : (yDirection < 0) ? "Up" : "Nowhere")} ");
+            if (AboutToHit(currentBall, xDirection, yDirection))
+                return 0;
 
             if (xDirection == 0)
-            {
-                Console.WriteLine("Staying Still");
+            {              
                 return 0;
             }
             else if (currentBall.Location.X + xDirection < paddle.Location.X)
@@ -105,12 +152,11 @@ namespace Day13
 
                 if (paddle.Location.X - 1 != 0)
                 {
-                    Console.WriteLine("Going left");
+                  
                     return -1;
                 }
                 else
-                {
-                    Console.WriteLine("Staying Still");
+                {                    
                     return 0;
                  }
             }
@@ -118,18 +164,29 @@ namespace Day13
             {
                 if (paddle.Location.X + 1 != Q2Objects.Select(x => x.Location.X).Max())
                 {
-                    Console.WriteLine("Going right");
+                 
                     return 1;
                 }
                 else
                 {
-                    Console.WriteLine("Staying Still");
+                 
                     return 0;
                 }
             }
 
-            Console.WriteLine("Staying Still");
+            
             return 0;
+        }
+
+        static bool AboutToHit(GameObject ball, int xDirection, int yDirection)
+        {
+            var nextPoint = new Point(ball.Location.X + xDirection, ball.Location.Y + yDirection);
+
+            return Q2Objects.Count(x => x.Location == nextPoint && (x.Type == GameObject.GameObjectType.block|| x.Type == GameObject.GameObjectType.wall)) > 0;
+            
+
+
+
         }
 
     }
