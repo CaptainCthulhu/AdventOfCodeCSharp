@@ -55,12 +55,10 @@ namespace Day13
 
 
         static public void OpCodeMachine(List<long> opcodes)
-        {       
+        {
 
-            for (int i = 0; i < 10000000; i++)
-            {
+            for (int i = 0; i < 1000000; ++i)
                 opcodes.Add(0);
-            }
 
             int index = 0;
             int relativeBase = 0;
