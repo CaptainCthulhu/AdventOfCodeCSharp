@@ -40,7 +40,7 @@ namespace DaySix
         {
             //boilerplate grab info
             var uri = "https://adventofcode.com/2020/day/6/input";
-            var sessionId = "53616c7465645f5f076a74a0fd1ea78b9c02c49c43582a078e2feaae187b8540659c45455eb20ea1d265868ac7fb03cf";
+            var sessionId = "";
 
             var webRequest = WebRequest.Create(uri) as HttpWebRequest;
             webRequest.CookieContainer = new CookieContainer();
