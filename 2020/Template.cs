@@ -8,11 +8,15 @@ namespace DayTwo
 {
     class Program
     {
+        static readonly bool Testing = true;
+
+        List<string> answer = new List<String>();
+
         static void Main(string[] args)
         {
-            var information = Parse(GetDetails());
-            QuestionOne(information);
-            QuestionTwo(information);            
+            Parse(GetDetails());
+            QuestionOne();
+            QuestionTwo();            
             Console.WriteLine("Done");
         }       
 
@@ -30,13 +34,21 @@ namespace DayTwo
             Console.Writeline($"Question Two:{answer}");
         }
 
-        static object Parse(string input)
+        static void Parse(string input)
         {
-            return new object();
+            for(var i in input.Trim().Split('\n'))
+            {
+                answer.Append(i.Trim());
+            }
         }
 
         static string GetDetails()
         {
+            //code with known good solutions.
+            if (Testing)
+                return @"";
+
+
             //boilerplate grab info
             var uri = "";
             var sessionId = ""
