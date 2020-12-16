@@ -8,11 +8,15 @@ namespace DayTwo
 {
     class Program
     {
+        static readonly bool Testing = true;
+
+        static List<string> answer = new List<String>();
+
         static void Main(string[] args)
         {
-            var information = Parse(GetDetails());
-            QuestionOne(information);
-            QuestionTwo(information);            
+            Parse(GetDetails());
+            QuestionOne();
+            QuestionTwo();            
             Console.WriteLine("Done");
         }       
 
@@ -20,26 +24,34 @@ namespace DayTwo
         {
             int answer = 0;
             //DoStuff
-            Console.Writeline($"Question One:{answer}");
+            Console.WriteLine($"Question One:{answer}");
         }
 
         static void QuestionTwo() 
         {
             int answer = 0;
            //DoStuff
-            Console.Writeline($"Question Two:{answer}");
+            Console.WriteLine($"Question Two:{answer}");
         }
 
-        static object Parse(string input)
+        static void Parse(string input)
         {
-            return new object();
+            foreach(var i in input.Trim().Split('\n'))
+            {
+                answer.Append(i.Trim());
+            }
         }
 
         static string GetDetails()
         {
+            //code with known good solutions.
+            if (Testing)
+                return @"";
+
+
             //boilerplate grab info
             var uri = "";
-            var sessionId = ""
+            var sessionId = "";
 
             var webRequest = WebRequest.Create(uri) as HttpWebRequest;
             webRequest.CookieContainer = new CookieContainer();
