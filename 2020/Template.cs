@@ -10,7 +10,7 @@ namespace DayTwo
     {
         static readonly bool Testing = true;
 
-        List<string> answer = new List<String>();
+        static List<string> answer = new List<String>();
 
         static void Main(string[] args)
         {
@@ -24,19 +24,19 @@ namespace DayTwo
         {
             int answer = 0;
             //DoStuff
-            Console.Writeline($"Question One:{answer}");
+            Console.WriteLine($"Question One:{answer}");
         }
 
         static void QuestionTwo() 
         {
             int answer = 0;
            //DoStuff
-            Console.Writeline($"Question Two:{answer}");
+            Console.WriteLine($"Question Two:{answer}");
         }
 
         static void Parse(string input)
         {
-            for(var i in input.Trim().Split('\n'))
+            foreach(var i in input.Trim().Split('\n'))
             {
                 answer.Append(i.Trim());
             }
@@ -51,7 +51,7 @@ namespace DayTwo
 
             //boilerplate grab info
             var uri = "";
-            var sessionId = ""
+            var sessionId = "";
 
             var webRequest = WebRequest.Create(uri) as HttpWebRequest;
             webRequest.CookieContainer = new CookieContainer();
