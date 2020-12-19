@@ -4,6 +4,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Day19
 {
@@ -13,6 +14,9 @@ namespace Day19
         public static bool Debug = false;
         static string Input;
 
+        public static int MaxLength;
+        public static int MinLength;
+
         public static Dictionary<int, Rule> Rules = new Dictionary<int, Rule>();
         static List<string> Messages = new List<string>();
 
@@ -20,48 +24,67 @@ namespace Day19
         {
             GetDetails();
             Parse();
+
+            MinLength = Messages.Min(x => x.Length);
+            MaxLength = Messages.Max(x => x.Length);
+
             QuestionOne();
-            QuestionTwo();
+            //QuestionTwo();
             Console.WriteLine("Done");
         }
 
         static void QuestionOne()
         {
             int answer = 0;
-            foreach (var m in Messages)
-            {
-                var testString = new String(m.Select(x => x).ToArray());
-                testString = Rules[0].RunRule(testString, 0, new List<int>());
-                if (testString.Length == 0)
-                    answer++;
-            }
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-            Console.WriteLine($"Question One:{answer}");
+            var possible = new List<string>();
+            Rules[0].RunRule(possible, new List<int> { 0 });
+            Console.WriteLine($"Done Rule Fetching {stopwatch.Elapsed}");
+            stopwatch.Restart();
+
+            possible = possible.Where(x => x.Length >= MinLength && x.Length <= MaxLength).ToList();
+            Console.WriteLine($"Done Rule Filter {stopwatch.Elapsed}");
+            stopwatch.Restart();
+
+            answer = Messages.Count(x => possible.Any(i => i.Equals(x)));            
+
+            Console.WriteLine($"Question One:{answer}. Time {stopwatch.Elapsed}");
         }
 
         static void QuestionTwo()
         {
             int answer = 0;
-            Debug = false;
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
             //Update the rules
             Rules[8] = new Rule("42 | 42 8");
             Rules[11] = new Rule("42 31 | 42 11 31");
 
+            var possible = new List<string>();
+
+            Rules[0].RunRule(possible, new List<int> { 0 });
+            Console.WriteLine($"Done Rule Fetching {stopwatch.Elapsed}");
+            stopwatch.Restart();
+
+            possible = possible.Where(x => x.Length >= MinLength && x.Length <= MaxLength).ToList();
+            Console.WriteLine($"Done Rule Filter {stopwatch.Elapsed}");
+            stopwatch.Restart();
+
             foreach (var m in Messages)
             {
                 Rule.Debug($"\n\nStarting {m}");
                 var testString = new String(m.Select(x => x).ToArray());
-
-                testString = Rules[0].RunRule(testString, 0, new List<int>());                
-
-                if (testString.Length == 0)
+                if (possible.Contains(m))
                 {
                     answer++;
                 }
             }
 
-            Console.WriteLine($"Question Two:{answer}");
+            Console.WriteLine($"Question Two:{answer}. Time {stopwatch.Elapsed}");
         }
 
         static void Parse()
@@ -177,66 +200,56 @@ namespace Day19
             }
         }
 
-        public string RunRule(string input, int ruleNum, List<int> ruleList)
+        public void RunRule(List<string> possible, List<int> instructionsRun)
         {
-            ruleList.Add(ruleNum);
-            Debug(String.Join(", ", ruleList));
+            if (instructionsRun.Where(x => x == 8 || x == 42).Count() > 3)
+            {
+                Console.WriteLine("Too deep! Abort!");
+                return;
+            }
+
+            List<string> rulesOptionsOne = possible.Select(x => (string)x.Clone()).ToList();
+            List<string> rulesOptionsTwo = possible.Select(x => (string)x.Clone()).ToList();
 
             if (Character.HasValue)
             {
-                var result = input;
-                if (input.First() == Character)
-                {
-                    result = input.Remove(0, 1);
-                    Debug($"Removing '{input.First()}' from '{input}' result '{result}'");
-                }
-                return result;
-            }
-            else
-            {
-                var ruleOptionOneString = new String(input.Select(x => x).ToArray());
-                var ruleOptionTwoString = new String(input.Select(x => x).ToArray());
-
-                if (RuleOptionOne != null)
-                    ruleOptionOneString = ProcessRule(RuleOptionOne, ruleOptionOneString, ruleNum, ruleList, "One");
-
-                if (RuleOptionTwo != null)
-                    ruleOptionTwoString = ProcessRule(RuleOptionTwo, ruleOptionTwoString, ruleNum, ruleList, "Two");
-
-
-                Debug($"Rule {ruleNum} Options '{ruleOptionOneString}' or '{ruleOptionTwoString}'");
-
-                if (ruleOptionOneString.Length < ruleOptionTwoString.Length)
-                {
-                    Debug($"Choosing option one '{ruleOptionOneString}'");
-                    return ruleOptionOneString;
-                }
+                if (possible.Count == 0)
+                    possible.Add(Character.ToString());
                 else
                 {
-                    Debug($"Choosing option two '{ruleOptionTwoString}'");
-                    return ruleOptionTwoString;
+                    foreach (var i in Enumerable.Range(0, possible.Count))
+                    {
+                        possible[i] = possible[i] + Character.ToString();
+                    }
                 }
-
             }
-        }
 
-        private static string ProcessRule(List<int> rulesToProcess, string inputString, int ruleNumberCalled, List<int> rulesRun, string ruleOptionOneOrTwo)
-        {
-            var modifiedString = new String(inputString.Select(x => x).ToArray());
-
-            foreach (int i in rulesToProcess)
+            if (RuleOptionOne != null)
             {
-                Debug($"Rule {ruleNumberCalled.ToString().PadLeft(4)} Option {ruleOptionOneOrTwo}. Run Rule {i.ToString().PadLeft(4)} {modifiedString.PadLeft(25)}");
-                modifiedString = Program.Rules[i].RunRule(modifiedString, i, rulesRun);
-                rulesRun.RemoveAt(rulesRun.Count - 1);
-                if (modifiedString.Length == inputString.Length)
+                foreach (var i in RuleOptionOne)
                 {
-                    Debug($"Rule {i.ToString().PadLeft(4)} did nothing. Breaking.");
-                    return modifiedString;
+                    instructionsRun.Add(i);
+                    Program.Rules[i].RunRule(rulesOptionsOne, instructionsRun);
+                    instructionsRun.RemoveAt(instructionsRun.Count - 1);
                 }
+
+                possible.AddRange(rulesOptionsOne);
             }
 
-            return modifiedString;
+            if (RuleOptionTwo != null)
+            {
+                foreach (var i in RuleOptionTwo)
+                {
+                    instructionsRun.Add(i);
+                    Program.Rules[i].RunRule(rulesOptionsTwo, instructionsRun);
+                    instructionsRun.RemoveAt(instructionsRun.Count - 1);
+                }
+
+                possible.AddRange(rulesOptionsTwo);
+            }
+
+            rulesOptionsOne.AddRange(rulesOptionsTwo);
+            possible = rulesOptionsOne;
         }
 
         public static void Debug(string s)
