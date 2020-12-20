@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace Day19
 {
@@ -14,77 +15,44 @@ namespace Day19
         public static bool Debug = false;
         static string Input;
 
-        public static int MaxLength;
-        public static int MinLength;
-
         public static Dictionary<int, Rule> Rules = new Dictionary<int, Rule>();
-        static List<string> Messages = new List<string>();
+        public static List<string> Messages = new List<string>();
 
         static void Main()
         {
             GetDetails();
-            Parse();
-
-            MinLength = Messages.Min(x => x.Length);
-            MaxLength = Messages.Max(x => x.Length);
-
+            Parse();            
             QuestionOne();
-            //QuestionTwo();
+            QuestionTwo();
             Console.WriteLine("Done");
         }
 
         static void QuestionOne()
         {
-            int answer = 0;
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
+            int answer = 0;
 
             var possible = new List<string>();
-            Rules[0].RunRule(possible, new List<int> { 0 });
-            Console.WriteLine($"Done Rule Fetching {stopwatch.Elapsed}");
-            stopwatch.Restart();
-
-            possible = possible.Where(x => x.Length >= MinLength && x.Length <= MaxLength).ToList();
-            Console.WriteLine($"Done Rule Filter {stopwatch.Elapsed}");
-            stopwatch.Restart();
-
-            answer = Messages.Count(x => possible.Any(i => i.Equals(x)));            
-
-            Console.WriteLine($"Question One:{answer}. Time {stopwatch.Elapsed}");
+            var rule = Rules[0].ParseRegex();
+            var regex = new Regex(rule);
+            answer = Messages.Count(x => regex.Match(x).Success);
+            Console.WriteLine($"Question One:{answer}.");
         }
 
         static void QuestionTwo()
-        {
-            int answer = 0;
-
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
+        {           
             //Update the rules
             Rules[8] = new Rule("42 | 42 8");
             Rules[11] = new Rule("42 31 | 42 11 31");
 
+            int answer = 0;
+
             var possible = new List<string>();
-
-            Rules[0].RunRule(possible, new List<int> { 0 });
-            Console.WriteLine($"Done Rule Fetching {stopwatch.Elapsed}");
-            stopwatch.Restart();
-
-            possible = possible.Where(x => x.Length >= MinLength && x.Length <= MaxLength).ToList();
-            Console.WriteLine($"Done Rule Filter {stopwatch.Elapsed}");
-            stopwatch.Restart();
-
-            foreach (var m in Messages)
-            {
-                Rule.Debug($"\n\nStarting {m}");
-                var testString = new String(m.Select(x => x).ToArray());
-                if (possible.Contains(m))
-                {
-                    answer++;
-                }
-            }
-
-            Console.WriteLine($"Question Two:{answer}. Time {stopwatch.Elapsed}");
+            var rule = Rules[0].ParseRegex();
+            var regex = new Regex(rule);
+            answer = Messages.Count(x => regex.Match(x).Success); 
+            Console.WriteLine($"Question Two:{answer}.");
         }
 
         static void Parse()
@@ -113,40 +81,18 @@ namespace Day19
             string input;
             //code with known good solutions.
             if (Testing)
-                input = @"42: 9 14 | 10 1
-                            9: 14 27 | 1 26
-                            10: 23 14 | 28 1
-                            1: a
-                            11: 42 31
-                            5: 1 14 | 15 1
-                            19: 14 1 | 14 14
-                            12: 24 14 | 19 1
-                            16: 15 1 | 14 14
-                            31: 14 17 | 1 13
-                            6: 14 14 | 1 14
-                            2: 1 24 | 14 4
-                            0: 8 11
-                            13: 14 3 | 1 12
-                            15: 1 | 14
-                            17: 14 2 | 1 7
-                            23: 25 1 | 22 14
-                            28: 16 1
-                            4: 1 1
-                            20: 14 14 | 1 15
-                            3: 5 14 | 16 1
-                            27: 1 6 | 14 18
-                            14: b
-                            21: 14 1 | 1 14
-                            25: 1 1 | 1 14
-                            22: 14 14
-                            8: 42
-                            26: 14 22 | 1 20
-                            18: 15 15
-                            7: 14 5 | 1 21
-                            24: 14 1
+                input = @"0: 4 1 5
+1: 2 3 | 3 2
+2: 4 4 | 5 5
+3: 4 5 | 5 4
+4: a
+5: b
 
-                            aaaabbaaaabbaaa
-                            baabbaaaabbaaaababbaababb";
+ababbb
+bababa
+abbbab
+aaabbb
+aaaabbb";
 
             else
             {
@@ -200,57 +146,52 @@ namespace Day19
             }
         }
 
-        public void RunRule(List<string> possible, List<int> instructionsRun)
+        public string ParseRegex()
         {
-            if (instructionsRun.Where(x => x == 8 || x == 42).Count() > 3)
-            {
-                Console.WriteLine("Too deep! Abort!");
-                return;
-            }
+            var parsedRegex = "^";            
+            parsedRegex += this.RecursiveParseRegex(new List<int> {0});
+            parsedRegex += "$";
+            return parsedRegex;
+        }
 
-            List<string> rulesOptionsOne = possible.Select(x => (string)x.Clone()).ToList();
-            List<string> rulesOptionsTwo = possible.Select(x => (string)x.Clone()).ToList();
+        public string RecursiveParseRegex(List<int> rulesRun)
+        {            
+            if (rulesRun.Count(x => x == 11 || x == 8) > 5)
+                return "";
 
+
+            var parsedPiece = "(";
             if (Character.HasValue)
             {
-                if (possible.Count == 0)
-                    possible.Add(Character.ToString());
-                else
+                return Character.ToString();
+            }
+            else
+            {
+                if (RuleOptionOne != null)
                 {
-                    foreach (var i in Enumerable.Range(0, possible.Count))
+                    foreach (int number in RuleOptionOne)
                     {
-                        possible[i] = possible[i] + Character.ToString();
+                        rulesRun.Add(number);
+                        parsedPiece += Program.Rules[number].RecursiveParseRegex(rulesRun);
+                        rulesRun.RemoveRange(rulesRun.Count - 1, 1);
+                    }
+                }
+                if (RuleOptionTwo != null)
+                {
+                    parsedPiece += "|";
+                    foreach (int number in RuleOptionTwo)
+                    {
+                        rulesRun.Add(number);
+                        parsedPiece += Program.Rules[number].RecursiveParseRegex(rulesRun);
+                        rulesRun.RemoveRange(rulesRun.Count - 1, 1);
                     }
                 }
             }
+            parsedPiece += ")";
+            return parsedPiece;
 
-            if (RuleOptionOne != null)
-            {
-                foreach (var i in RuleOptionOne)
-                {
-                    instructionsRun.Add(i);
-                    Program.Rules[i].RunRule(rulesOptionsOne, instructionsRun);
-                    instructionsRun.RemoveAt(instructionsRun.Count - 1);
-                }
-
-                possible.AddRange(rulesOptionsOne);
-            }
-
-            if (RuleOptionTwo != null)
-            {
-                foreach (var i in RuleOptionTwo)
-                {
-                    instructionsRun.Add(i);
-                    Program.Rules[i].RunRule(rulesOptionsTwo, instructionsRun);
-                    instructionsRun.RemoveAt(instructionsRun.Count - 1);
-                }
-
-                possible.AddRange(rulesOptionsTwo);
-            }
-
-            rulesOptionsOne.AddRange(rulesOptionsTwo);
-            possible = rulesOptionsOne;
         }
+
 
         public static void Debug(string s)
         {
