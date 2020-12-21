@@ -13,13 +13,14 @@ using System.ComponentModel.Design;
 using System.Threading;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Net.Sockets;
 
 namespace Day20
 {
     class Program
     {
-        static readonly bool Testing = true;
-        static readonly bool Debug = true;
+        static readonly bool Testing = false;
+        static readonly bool Debug = false;
         static string Input;
         static Dictionary<int, char[,]> Tiles = new Dictionary<int, char[,]>();
         static Dictionary<int, int> PieceEdges = new Dictionary<int, int>();
@@ -86,69 +87,38 @@ namespace Day20
 
             PopulateGrid(tilePlacement, gridSize);
 
-            RotateInitial(tilePlacement);
-
-            RotateTheRest(tilePlacement);
+            SetPositions(0, tilePlacement);
 
             ResizeTiles();
 
             StitchThemTogether(tilePlacement);
 
-            SearchTheMegaMap();
-
             //DoStuff
-            Console.WriteLine($"Question Two:{answer}");
+            Console.WriteLine($"Question Two:{CountHashes() - (SearchTheMegaMap() * SeaMonsterHashes)}");
         }
 
-        static public int SearchTheMegaMap()
+        static int SearchTheMegaMap()
         {
+
             var maximumCount = 0;
-            var result = FindSeaMonster();
-            if (result > maximumCount)
-                maximumCount = result;
+            for (var i = 0; i < 4; i++)
+            {
+                if (i == 1)
+                    MegaMap = Helper.FlipHorizontal(MegaMap);
+                else if (i == 2)
+                    MegaMap = Helper.FlipVertical(MegaMap);
+                else if (i == 3)
+                    MegaMap = Helper.FlipHorizontal(MegaMap);
 
-            for (int i = 0; i < 4; i++)
-            {
-                MegaMap = Helper.RotateTile(MegaMap);
-                result = FindSeaMonster();
-                if (result > maximumCount)
-                    maximumCount = result;
+                for (int rotateTop = 0; rotateTop < 4; rotateTop++)
+                {
+                    var result = FindSeaMonster();
+                    if (result > maximumCount)
+                        maximumCount = result;
+                    MegaMap = Helper.RotateTile(MegaMap);
+                }
             }
-            if  (Debug)
-                Display(0, MegaMap);
 
-            Helper.FlipHorizontal(MegaMap);
-            for (int i = 0; i < 4; i++)
-            {
-                MegaMap = Helper.RotateTile(MegaMap);
-                result = FindSeaMonster();
-                if (result > maximumCount)
-                    maximumCount = result;
-            }
-            if  (Debug)
-                Display(0, MegaMap);
-            MegaMap = Helper.FlipVertical(MegaMap);
-            for (int i = 0; i < 4; i++)
-            {
-                MegaMap =  Helper.RotateTile(MegaMap);
-                result = FindSeaMonster();
-                if (result > maximumCount)
-                    maximumCount = result;
-            }
-            if  (Debug)
-                Display(0, MegaMap);
-
-            MegaMap = Helper.FlipHorizontal(MegaMap);
-            for (int i = 0; i < 4; i++)
-            {
-                MegaMap = Helper.RotateTile(MegaMap);
-                result = FindSeaMonster();
-                if (result > maximumCount)
-                    maximumCount = result;
-            }
-            if  (Debug)
-                Display(0, MegaMap);            
-            
             return maximumCount;
         }
 
@@ -166,9 +136,12 @@ namespace Day20
                     {
                         for (int xSM = 0; xSM < SeaMonster.GetLength(0); xSM++)
                         {
-                            if (MegaMap[x + xSM, y + ySM] != SeaMonster[xSM,ySM])
+                            if (SeaMonster[xSM, ySM] == '#')
                             {
-                                found = false;
+                                if (MegaMap[x + xSM, y + ySM] != SeaMonster[xSM, ySM])
+                                {
+                                    found = false;
+                                }
                             }
                         }
                     }
@@ -177,6 +150,20 @@ namespace Day20
                 }
             }
 
+            return count;
+        }
+
+        static int CountHashes()
+        {
+            var count = 0;
+            foreach (var y in Enumerable.Range(0, MegaMap.GetLength(0)))
+            {
+                foreach (var x in Enumerable.Range(0, MegaMap.GetLength(0)))
+                {
+                    if (MegaMap[x, y] == '#')
+                        count++;
+                }
+            }
             return count;
         }
 
@@ -238,9 +225,9 @@ namespace Day20
                         {
                             var adjacentTiles = GetAdjacentTiles(x, y, tilePlacement);
 
-                            var possibleIdList = adjacentTiles.First().Value.Union(adjacentTiles.Last().Value);
+                            var possibleIdList = adjacentTiles.First().Value.Where(a => adjacentTiles.Last().Value.Contains(a));
 
-                            var possibleItems = ConnectsTo.Where(x => possibleIdList.Contains(x.Key) && !Helper.ContainsNumber(tilePlacement, x.Key));
+                            var possibleItems = ConnectsTo.Where(a => possibleIdList.Contains(a.Key) && !Helper.ContainsNumber(tilePlacement, a.Key));
 
                             tilePlacement[x, y] = possibleItems.Where(x => x.Value.Count == possibleItems.Select(x => x.Value.Count).Min()).First().Key;
                         }
@@ -262,252 +249,74 @@ namespace Day20
             return adjacentTiles;
         }
 
-        static public void RotateInitial(int[,] tilePlacement)
+        static public bool SetPositions(int number, int[,] tilePlacement)
         {
-            var one = Tiles[tilePlacement[0, 0]];
-            var two = Tiles[tilePlacement[1, 0]];
+            if (number >= Tiles.Count)
+                return true;
 
-            if (Helper.GetRightEdge(one).Equals(Helper.GetLeftEdge(two)))
-                return;
+            var xPosition = number % tilePlacement.GetLength(0);
+            var yPosition = number / tilePlacement.GetLength(1);
 
-            var result = false;
+            var tileNumber = tilePlacement[xPosition, yPosition];
+            var tile = Tiles[tileNumber];
 
-            result = SearchLeftRight(one, two);
-            if (result)
-                return;
-            two = Helper.FlipHorizontal(two);
-            result = SearchLeftRight(one, two);
-            if (result)
-                return;            
-            two = Helper.FlipVertical(two);
-            result = RotateTheTwoCheckLeftRight(one, two);
-            if (result)
-                return;
-            two = Helper.FlipHorizontal(two);
-            result = RotateTheTwoCheckLeftRight(one, two);
-            if (result)
-                return;
+            var adjacentTiles = GetAdjacentTiles(xPosition, yPosition, tilePlacement);
+            string directionToCheck = "";
+            string toCheckAgainst = "";
+            Tuple<int, int> coordinates;
 
-            Console.WriteLine("Initial Never Matched");
-        }
-
-        static public bool SearchLeftRight(char[,] one, char[,] two)
-        {
-            bool found = false;
-            found = RotateTheTwoCheckLeftRight(one, two);
-            if (found)
-                return found;
-            one = Helper.FlipHorizontal(one);
-            found = RotateTheTwoCheckLeftRight(one, two);
-            if (found)
-                return found;            
-            one = Helper.FlipVertical(one);
-            found = RotateTheTwoCheckLeftRight(one, two);
-            if (found)
-                return found;
-            one = Helper.FlipHorizontal(one);
-            found = RotateTheTwoCheckLeftRight(one, two);
-            if (found)
-                return found;
-            return false;
-        }
-
-        static public bool RotateTheTwoCheckRightLeft(char[,] one, char[,] two)
-        {
-            for (int rotateSecond = 0; rotateSecond < 4; rotateSecond++)
+            if (adjacentTiles.Count > 0)
             {
-                for (int rotateTop = 0; rotateTop < 4; rotateTop++)
+                var firstItem = adjacentTiles.First();
+                coordinates = Helper.CoordinatesOf(tilePlacement, firstItem.Key);
+                if (coordinates.Item1 < xPosition)
                 {
-                    one = Helper.RotateTile(one);
-                    if (Helper.GetLeftEdge(one).Equals(Helper.GetRightEdge(two)))
-                        return true;                    
+                    directionToCheck = "left";
+                    toCheckAgainst = Helper.GetRightEdge(Tiles[firstItem.Key]);
                 }
-                two = Helper.RotateTile(two);
-            }
-            return false;
-        }
-
-        static public bool SearchRightLeft(char[,] one, char[,] two)
-        {
-            bool found;
-            found = RotateTheTwoCheckRightLeft(one, two);
-            if (found)
-                return found;
-            one = Helper.FlipHorizontal(one);
-            found = RotateTheTwoCheckRightLeft(one, two);
-            if (found)
-                return found;            
-            one = Helper.FlipVertical(one);
-            found = RotateTheTwoCheckRightLeft(one, two);
-            if (found)
-                return found;
-            one = Helper.FlipHorizontal(one);
-            found = RotateTheTwoCheckRightLeft(one, two);
-            if (found)
-                return found;
-            return false;
-        }
-
-        static public bool SearchTopBottom(char[,] one, char[,] two)
-        {
-            bool found;
-            found = RotateTheTwoCheckTopBottom(one, two);
-            if (found)
-                return found;
-            one = Helper.FlipHorizontal(one);
-            found = RotateTheTwoCheckTopBottom(one, two);
-            if (found)
-                return found;            
-            one = Helper.FlipVertical(one);
-            found = RotateTheTwoCheckTopBottom(one, two);
-            if (found)
-                return found;
-            one = Helper.FlipHorizontal(one);
-            found = RotateTheTwoCheckTopBottom(one, two);
-            if (found)
-                return found;
-            return false;
-        }
-
-        static public bool RotateTheTwoCheckLeftRight(char[,] one, char[,] two)
-        {
-            for (int rotateSecond = 0; rotateSecond < 4; rotateSecond++)
-            {
-                for (int rotateTop = 0; rotateTop < 4; rotateTop++)
+                else if (coordinates.Item2 < yPosition)
                 {
-                    one = Helper.RotateTile(one);
-                    if (Helper.GetRightEdge(one).Equals(Helper.GetLeftEdge(two)))
-                        return true;
+                    directionToCheck = "up";
+                    toCheckAgainst = Helper.GetBottomEdge(Tiles[firstItem.Key]);
                 }
-                two = Helper.RotateTile(two);
             }
-            return false;
-        }
 
-        static public bool RotateTheTwoCheckTopBottom(char[,] one, char[,] two)
-        {
-            for (int rotateSecond = 0; rotateSecond < 4; rotateSecond++)
+            for (var flipCounter = 0; flipCounter < 4; flipCounter++)
             {
-                for (int rotateTop = 0; rotateTop < 4; rotateTop++)
+                if (flipCounter == 1)
+                    tile = Helper.FlipHorizontal(tile);
+                else if (flipCounter == 2)
+                    tile = Helper.FlipVertical(tile);
+                else if (flipCounter == 3)
+                    tile = Helper.FlipHorizontal(tile);
+
+                for (int rotationCount = 0; rotationCount < 4; rotationCount++)
                 {
-                    one = Helper.RotateTile(one);
-                    if (Helper.GetTopEdge(one).Equals(Helper.GetBottomEdge(two)))
-                        return true;
-                }
-                two = Helper.RotateTile(two);
-            }
-            return false;
-        }
-
-        static public bool RotateTheOneCheckRightLeft(char[,] one, char[,] two)
-        {           
-            for (int rotateTop = 0; rotateTop < 4; rotateTop++)
-            {
-                one = Helper.RotateTile(one);
-                if (Helper.GetLeftEdge(one).Equals(Helper.GetRightEdge(two)))
-                    return true;
-            }
-            one = Helper.FlipHorizontal(one);
-            for (int rotateTop = 0; rotateTop < 4; rotateTop++)
-            {
-                one = Helper.RotateTile(one);
-                if (Helper.GetLeftEdge(one).Equals(Helper.GetRightEdge(two)))
-                    return true;
-            }
-            one = Helper.FlipVertical(one);
-            for (int rotateTop = 0; rotateTop < 4; rotateTop++)
-            {
-                one = Helper.RotateTile(one);
-                if (Helper.GetLeftEdge(one).Equals(Helper.GetRightEdge(two)))
-                    return true;
-            }
-            one = Helper.FlipHorizontal(one);
-            for (int rotateTop = 0; rotateTop < 4; rotateTop++)
-            {
-                one = Helper.RotateTile(one);
-                if (Helper.GetLeftEdge(one).Equals(Helper.GetRightEdge(two)))
-                    return true;
-            }
-
-            return false;
-        }
-
-        static public bool RotateTheOneCheckTopBottom(char[,] one, char[,] two)
-        {
-            if (Debug)
-                Display(0, one);
-            for (int rotateTop = 0; rotateTop < 4; rotateTop++)
-            {
-                one = Helper.RotateTile(one);
-                if (Helper.GetTopEdge(one).Equals(Helper.GetBottomEdge(two)))
-                    return true;
-            }
-            one = Helper.FlipHorizontal(one);
-            for (int rotateTop = 0; rotateTop < 4; rotateTop++)
-            {
-                one = Helper.RotateTile(one);
-                if (Helper.GetTopEdge(one).Equals(Helper.GetBottomEdge(two)))
-                    return true;
-            }
-            one = Helper.FlipVertical(one);
-            for (int rotateTop = 0; rotateTop < 4; rotateTop++)
-            {
-                one = Helper.RotateTile(one);
-                if (Helper.GetTopEdge(one).Equals(Helper.GetBottomEdge(two)))
-                    return true;
-            }
-            one = Helper.FlipHorizontal(one);
-            for (int rotateTop = 0; rotateTop < 4; rotateTop++)
-            {
-                one = Helper.RotateTile(one);
-                if (Helper.GetTopEdge(one).Equals(Helper.GetBottomEdge(two)))
-                    return true;
-            }
-            
-
-            return false;
-        }        
-
-        static public void RotateTheRest(int[,] tilePlacement)
-        {
-            foreach (var y in Enumerable.Range(0, tilePlacement.GetLength(0)))
-            {
-                foreach (var x in Enumerable.Range(0, tilePlacement.GetLength(0)))
-                {
-                    if (!(x == 0 && y == 0))
+                    Tiles[tileNumber] = tile;                    
+                    bool correct = true;
+                    if (directionToCheck == "left")
                     {
-                        string bottomToCheck = "";
-                        string rightToCheck = "";
-                        var tile = Tiles[tilePlacement[x, y]];
-
-                        var adjacentTiles = GetAdjacentTiles(x, y, tilePlacement);
-
-                        var firstItem = adjacentTiles.First();
-                        var firstItemTile = Tiles[firstItem.Key];
-                        var coordinates = Helper.CoordinatesOf(tilePlacement, firstItem.Key);
-                        if (coordinates.Item1 < x)
-                        {
-                            rightToCheck = Helper.GetRightEdge(Tiles[firstItem.Key]);
-                        }
-                        else if (coordinates.Item2 < y)
-                        {
-                            bottomToCheck = Helper.GetBottomEdge(Tiles[firstItem.Key]);
-                        }
-                        var result = false;
-
-                        if (!String.IsNullOrWhiteSpace(rightToCheck))
-                        {
-                            result = RotateTheOneCheckRightLeft(tile, firstItemTile);
-                        }
-                        else if (!String.IsNullOrWhiteSpace(bottomToCheck))
-                        {
-                            result = RotateTheOneCheckTopBottom(tile, firstItemTile);
-                        }
-                        Console.WriteLine($"Result: {result}");
+                        var leftEdge = Helper.GetLeftEdge(tile);
+                        correct = leftEdge.Equals(toCheckAgainst);
                     }
+                    else if (directionToCheck == "up")
+                    {                        
+                        var topEdge = Helper.GetTopEdge(tile);
+                        correct = topEdge.Equals(toCheckAgainst);
+                    }
+                    if (correct)
+                    {
+                        var result = SetPositions(number + 1, tilePlacement);
+                        if (result)
+                            return true;
+                    }
+                    Tiles[tileNumber] = Helper.RotateTile(tile);
                 }
             }
+
+            return false;
         }
+
 
         public void Log(string s)
         {
