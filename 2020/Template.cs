@@ -4,17 +4,18 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DayTwo
+namespace Day18
 {
     class Program
     {
-        static readonly bool Testing = true;
+        static readonly bool Testing = false;
+        static readonly bool Debug = false;
+        static string Input;        
 
-        static List<string> answer = new List<String>();
-
-        static void Main(string[] args)
+        static void Main()
         {
-            Parse(GetDetails());
+            GetDetails();
+            Parse();
             QuestionOne();
             QuestionTwo();            
             Console.WriteLine("Done");
@@ -34,34 +35,54 @@ namespace DayTwo
             Console.WriteLine($"Question Two:{answer}");
         }
 
-        static void Parse(string input)
+        public void Log(string s)
         {
-            foreach(var i in input.Trim().Split('\n'))
+            if (Debug || Testing)
             {
-                answer.Append(i.Trim());
+                Console.WriteLine(s);
             }
         }
 
-        static string GetDetails()
+        static void Parse()
+        {           
+            
+        }
+
+        static void GetDetails()
         {
+
+            string input;
             //code with known good solutions.
             if (Testing)
-                return @"";
+                input = @".#.
+..#
+###";
+            else
+            {
+                if (!File.Exists("input.txt"))
+                {
+                    //boilerplate grab info
+                    var uri = "https://adventofcode.com/2020/day/18/input";
+                    var sessionId = "";
 
+                    var webRequest = WebRequest.Create(uri) as HttpWebRequest;
+                    webRequest.CookieContainer = new CookieContainer();
+                    var cookie = new Cookie("session", sessionId);
+                    cookie.Domain = "adventofcode.com";
 
-            //boilerplate grab info
-            var uri = "";
-            var sessionId = "";
+                    webRequest.CookieContainer.Add(cookie);
+                    var responseStream = webRequest.GetResponse().GetResponseStream();
 
-            var webRequest = WebRequest.Create(uri) as HttpWebRequest;
-            webRequest.CookieContainer = new CookieContainer();
-            var cookie = new Cookie("session", sessionId);
-            cookie.Domain = "adventofcode.com";
+                    using (var fileStream = new FileStream("input.txt", FileMode.Create, FileAccess.Write))
+                    {
+                        responseStream.CopyTo(fileStream);
+                    }
+                }
 
-            webRequest.CookieContainer.Add(cookie);
-            var responseStream = webRequest.GetResponse().GetResponseStream();
-            var reader = new StreamReader(responseStream);
-            return reader.ReadToEnd();
+                input = File.ReadAllText("input.txt");
+            }
+
+            Input = input.Replace("\r", "").Trim();
         }
     }  
 }
