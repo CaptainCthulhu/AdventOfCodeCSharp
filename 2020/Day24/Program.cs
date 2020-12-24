@@ -15,7 +15,7 @@ namespace Day24
         static readonly bool Debug = false;
         static string Input;
         static List<List<string>> InstructionsLists;
-        static Dictionary<(int, int), char> Tiles;
+        static HashSet<(int, int)> Tiles = new HashSet<(int, int)>();
 
         static Dictionary<string, (int, int)> Directions = new Dictionary<string, (int, int)>
         {
@@ -39,16 +39,15 @@ namespace Day24
         static void QuestionOne()
         {
             Walk();
-            Console.WriteLine($"Question One: {Tiles.Values.Count()}");
+            Console.WriteLine($"Question One: {Tiles.Count()}");
         }
         static void QuestionTwo()
         {
             foreach (var i in Enumerable.Range(0, 100))
             {
                 Tiles = HexGameOfLife();
-                Log($"Day {i + 1}: {Tiles.Values.Count()}");
             }
-            Console.WriteLine($"Question Two: {Tiles.Values.Count()}");
+            Console.WriteLine($"Question Two: {Tiles.Count()}");
         }
 
         static void Walk()
@@ -59,25 +58,25 @@ namespace Day24
                 foreach (var instruction in instructions)                
                     currentPoint = NewLocation(currentPoint, Directions[instruction]);                
                 
-                if (Tiles.ContainsKey(currentPoint))
-                        Tiles.Remove(currentPoint);                
+                if (Tiles.Contains(currentPoint))
+                    Tiles.Remove(currentPoint);                
                 else
-                    Tiles[currentPoint] = 'b';
+                    Tiles.Add(currentPoint);
             }
         }
 
-        static Dictionary<(int, int), char> HexGameOfLife()
+        static HashSet<(int,int)> HexGameOfLife()
         {
-            Dictionary<(int, int), char> newTiles = new Dictionary<(int, int), char>();
+            HashSet<(int, int)> newTiles = new HashSet<(int, int)>();
 
             foreach (var element in Tiles)
             {
                 //Search the core
-                SearchCoordinate(element.Key, (0, 0), newTiles);
+                SearchCoordinate(element, (0, 0), newTiles);
                 //Search the rest
                 foreach (var value in Directions.Values)
                 {
-                    SearchCoordinate(element.Key, value, newTiles);
+                    SearchCoordinate(element, value, newTiles);
                 }                
                 
             }
@@ -85,18 +84,18 @@ namespace Day24
             return newTiles;
         }
 
-        static void SearchCoordinate((int, int) originalCoordinates, (int, int) movementDirections,  Dictionary<(int, int), char> newTiles)
+        static void SearchCoordinate((int, int) originalCoordinates, (int, int) movementDirections,  HashSet<(int, int)> newTiles)
         {
             var newLocation = NewLocation(originalCoordinates, movementDirections);
 
-            if (Tiles.ContainsKey(newLocation))
+            if (Tiles.Contains(newLocation))
             {
                 var blackTileCount = SearchAround(newLocation);
                 if (blackTileCount != 0 && blackTileCount < 3)
-                    newTiles[newLocation] = 'b';
+                    newTiles.Add(newLocation);
             }
-            else if (!newTiles.ContainsKey(newLocation) && SearchAround(newLocation) == 2)                                         
-                newTiles[newLocation] = 'b';            
+            else if (!newTiles.Contains(newLocation) && SearchAround(newLocation) == 2)
+                newTiles.Add(newLocation);
         }
 
         static int SearchAround((int, int) coordinates)
@@ -113,7 +112,7 @@ namespace Day24
         static int HasElement((int,int) originalCoordinates, (int,int)movementDirection)
         {
             var newLocation = NewLocation(originalCoordinates, movementDirection);
-            return (Tiles.ContainsKey(newLocation) && Tiles[newLocation] == 'b') ? 1 : 0;
+            return Tiles.Contains(newLocation) ? 1 : 0;
 
         }
 
@@ -132,7 +131,6 @@ namespace Day24
 
         static void Parse()
         {
-            Tiles = new Dictionary<(int, int), char>();
             InstructionsLists = new List<List<string>>();
             var lines = Input.Split('\n');
             foreach (var e in lines)
